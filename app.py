@@ -3,6 +3,16 @@ import pickle
 import pandas as pd
 import requests
 
+import gdown
+import os
+
+# Download similarity.pkl from Google Drive if not present
+if not os.path.exists("similarity.pkl"):
+    gdown.download(
+        "https://drive.google.com/uc?id=YOUR_FILE_ID_HERE",
+        "similarity.pkl",
+        quiet=False
+    )
 st.set_page_config(page_title="Movie Recommender", layout="wide")
 
 st.markdown("""
