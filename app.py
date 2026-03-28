@@ -6,10 +6,9 @@ import requests
 import gdown
 import os
 
-# Download similarity.pkl from Google Drive if not present
 if not os.path.exists("similarity.pkl"):
     gdown.download(
-        "https://drive.google.com/uc?id=YOUR_FILE_ID_HERE",
+        "https://drive.google.com/uc?id=https://drive.google.com/file/d/1JuMsRQ49pHHmXLit_XprKzvPRk8B1oyP/view?usp=share_link",
         "similarity.pkl",
         quiet=False
     )
