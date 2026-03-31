@@ -2,17 +2,7 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
-import gdown
 import os
-
-if not os.path.exists("similarity.pkl"):
-    with st.spinner("Downloading model data... (first time only, ~180MB)"):
-        gdown.download(
-            "https://drive.google.com/uc?id=1JuMsRQ49pHHmXLit_XprKzvPRk8B1oyP",
-            "similarity.pkl",
-            quiet=False,
-            fuzzy=True
-        )
 
 st.set_page_config(page_title="Movie Recommender", layout="wide")
 
@@ -99,6 +89,7 @@ st.markdown("""
 
 
 def fetch_poster_and_year(movie_id):
+    """Fetch poster and release year using the TMDB movie ID."""
     url = f"https://api.themoviedb.org/3/movie/{movie_id}"
     params = {"api_key": "594119c49605aab1692ba95bf4d36d66"}
 
@@ -145,9 +136,16 @@ def recommend(movie_name):
     return recommended_movies
 
 
-movies = pickle.load(open("movies.pkl", "rb"))
-similarity = pickle.load(open("similarity.pkl", "rb"))
+# ── Load data ──────────────────────────────────────────────────────────────────
+@st.cache_resource
+def load_data():
+    movies = pickle.load(open("movies.pkl", "rb"))
+    similarity = pickle.load(open("similarity.pkl", "rb"))
+    return movies, similarity
 
+movies, similarity = load_data()
+
+# ── UI ─────────────────────────────────────────────────────────────────────────
 st.title("🎬 Movie Recommendation System")
 st.markdown("##### Discover movies you'll love based on your favorites")
 st.markdown("---")
@@ -173,21 +171,3 @@ if st.button("✨ Get Recommendations"):
                     <div class="movie-year">📅 {movie['year']}</div>
                 </div>
             """, unsafe_allow_html=True)
-
-
-@st.cache_resource(show_spinner=False)
-def load_data():
-    # Download similarity.pkl if not present
-    if not os.path.exists("similarity.pkl"):
-        with st.spinner("⏳ Setting up for the first time (~180MB)... please wait"):
-            gdown.download(
-                "https://drive.google.com/uc?id=1JuMsRQ49pHHmXLit_XprKzvPRk8B1oyP",
-                "similarity.pkl",
-                quiet=False,
-                fuzzy=True
-            )
-    movies = pickle.load(open("movies.pkl", "rb"))
-    similarity = pickle.load(open("similarity.pkl", "rb"))
-    return movies, similarity
-
-movies, similarity = load_data()
