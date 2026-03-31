@@ -1,4 +1,8 @@
 mkdir -p ~/.streamlit/
+#!/bin/bash
+
+git lfs install
+git lfs pull
 
 echo "\
 [server]\n\
