@@ -2,25 +2,9 @@ import streamlit as st
 import pickle
 import pandas as pd
 import requests
-import gdown
-import os
 
-# ── Ensure similarity.pkl exists ──────────────────────────────
-similarity_file_id = "1JuMsRQ49pHHmXLit_XprKzvPRk8B1oyP"  # similarity.pkl file ID
-similarity_filename = "similarity.pkl"
-
-if not os.path.exists(similarity_filename):
-    st.write(f"Downloading {similarity_filename}...")
-    gdown.download(f"https://drive.google.com/uc?id={similarity_file_id}", similarity_filename, quiet=False)
-
-# ── Load data ──────────────────────────────────────────────
-movies = pickle.load(open("movies.pkl", "rb"))        # Already exists
-similarity = pickle.load(open(similarity_filename, "rb"))
-
-# ── Streamlit page config ──────────────────────────────────
 st.set_page_config(page_title="Movie Recommender", layout="wide")
 
-# ── CSS for styling ─────────────────────────────────────────
 st.markdown("""
     <style>
         body { background-color: #0f0f0f; }
@@ -103,17 +87,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Function to fetch poster and release year from TMDB ─────────
 def fetch_poster_and_year(movie_id):
     """Fetch poster and release year using the TMDB movie ID."""
     url = f"https://api.themoviedb.org/3/movie/{movie_id}"
     params = {"api_key": "594119c49605aab1692ba95bf4d36d66"}
 
-    try:
-        response = requests.get(url, params=params)
-        data = response.json()
-    except Exception:
-        data = {}
+    response = requests.get(url, params=params)
+    data = response.json()
 
     # Poster
     poster_path = data.get("poster_path")
@@ -123,14 +103,13 @@ def fetch_poster_and_year(movie_id):
         else "https://via.placeholder.com/500x750?text=No+Image"
     )
 
-    # Release year
+    # Release year — safely extract from "release_date" e.g. "2009-12-18"
     release_date = data.get("release_date", "")
     year = release_date[:4] if release_date else "N/A"
 
     return poster_url, year
 
 
-# ── Recommendation function ────────────────────────────────
 def recommend(movie_name):
     movie_index = movies[movies['title'] == movie_name].index[0]
     distances = similarity[movie_index]
@@ -141,7 +120,7 @@ def recommend(movie_name):
     recommended_movies = []
     for i in movies_list_ext:
         row = movies.iloc[i[0]]
-        movie_id = row['movie_id']
+        movie_id = row['movie_id']       # ← uses ID instead of title
         title = row['title']
         poster_url, year = fetch_poster_and_year(movie_id)
         recommended_movies.append({
@@ -153,12 +132,17 @@ def recommend(movie_name):
     return recommended_movies
 
 
-# ── Streamlit UI ───────────────────────────────────────────
+# ── Load data ──────────────────────────────────────────────────────────────────
+movies = pickle.load(open("movies.pkl", "rb"))
+similarity = pickle.load(open("similarity.pkl", "rb"))
+
+# ── UI ─────────────────────────────────────────────────────────────────────────
 st.title("🎬 Movie Recommendation System")
 st.markdown("##### Discover movies you'll love based on your favorites")
 st.markdown("---")
 
 selected_movie_name = st.selectbox("🎥 Select a movie you like:", movies['title'].values)
+
 st.markdown("<br>", unsafe_allow_html=True)
 
 if st.button("✨ Get Recommendations"):
